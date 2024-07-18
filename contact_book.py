@@ -17,21 +17,19 @@ class ContactBook:
         del self.contacts[index]
         return return_val
 
-    def search_by_name(
-        self, contact_name: str
-    ) -> Tuple[int, contact.Contact | None]:
+    def search_by_phone(self, phone: str) -> Tuple[int, contact.Contact | None]:
         for i, contact in enumerate(self.contacts):
-            if contact.name == contact_name:
+            if contact.phone == phone:
                 return i, contact
 
         return -1, None
 
-    def search_by_phone(
-        self, contact_phone: str
-    ) -> list[Tuple[int, contact.Contact]]:
-        return list(
+    def search_by_name(
+        self, name: str
+    ) -> Tuple[Tuple[int, contact.Contact], ...]:
+        return tuple(
             filter(
-                lambda val: val[1].phone == contact_phone,
+                lambda val: val[1].name == name,
                 enumerate(self.contacts),
             ),
         )
