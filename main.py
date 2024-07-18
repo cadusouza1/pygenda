@@ -1,5 +1,6 @@
 import contact
 import contact_book
+import menu_option
 
 
 def load_contact_book_from_txt_file(txt: str) -> contact_book.ContactBook:
@@ -62,13 +63,13 @@ def remove_contact(
     book: contact_book.ContactBook,
 ) -> contact.Contact | None:
     name = input("Name of the contact to remove: ")
-    index, _ = book.search_by_name(name)
+    contacts = book.search_by_name(name)
 
-    if index == -1:
+    if not contacts:
         print("Contact not found")
     else:
-        book.remove(index)
-        print("Contact removed")
+        book.remove(contacts[0][0])  # Remove the first contact with the name
+        print(f"Contact removed")
 
 
 def edit_contact(book: contact_book.ContactBook) -> None:
@@ -92,37 +93,41 @@ def edit_contact(book: contact_book.ContactBook) -> None:
 def main():
     txt = "contacts.txt"
     book = load_contact_book_from_txt_file(txt)
+    menu = [
+        menu_option.MenuOption("Add", lambda book: add_contact(book)),
+        menu_option.MenuOption("Remove", lambda book: remove_contact(book)),
+        menu_option.MenuOption("Edit", lambda book: edit_contact(book)),
+        menu_option.MenuOption("List", lambda book: book.list_all_contacts()),
+        menu_option.MenuOption(
+            "Search by name", lambda book: search_contact_by_name(book)
+        ),
+        menu_option.MenuOption(
+            "Search by phone", lambda book: search_contact_by_phone(book)
+        ),
+    ]
 
     while 1:
-        print("Select an option: ")
-        print("1. Add")
-        print("2. Remove")
-        print("3. Edit")
-        print("4. List")
-        print("5. Search by name")
-        print("6. Search by phone")
-        print("7. Stop")
+        print("Select an option (0 to stop): ")
+        for i, m in enumerate(menu):
+            print(f"{i + 1}. {m.label}")
 
-        option = int(input("Enter your option: "))
+        option = input("Enter your option: ")
+
+        if not option.isnumeric():
+            print("Invalid input. Please input a valid option\n")
+            continue
+
+        option = int(option)
         print()
 
-        if option == 1:
-            add_contact(book)
-        elif option == 2:
-            remove_contact(book)
-        elif option == 3:
-            edit_contact(book)
-        elif option == 4:
-            book.list_all_contacts()
-        elif option == 5:
-            search_contact_by_name(book)
-        elif option == 6:
-            search_contact_by_phone(book)
-        elif option == 7:
+        if option == 0:
             break
-        else:
-            print("Invalid option")
 
+        if option >= len(menu):
+            print("Invalid option")
+            continue
+
+        menu[option - 1].fn(book)
         print()
 
     save_contact_book_to_txt_file(txt, book)
