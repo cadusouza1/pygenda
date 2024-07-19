@@ -1,6 +1,9 @@
 import contact
 import contact_book
 import menu_option
+import validation
+from exceptions import (DuplicatedPhoneNumberException, InvalidNameException,
+                        InvalidPhoneNumberException)
 
 
 def load_contact_book_from_txt_file(txt: str) -> contact_book.ContactBook:
@@ -53,10 +56,23 @@ def search_contact_by_name(
 
 
 def add_contact(book: contact_book.ContactBook) -> None:
-    name = input("Name: ")
-    phone = input("Phone: ")
+    try:
+        name = input("Name: ")
+        validation.validade_contact_name(name)
 
-    book.add(contact.Contact(name, phone))
+        phone = input("Phone: ")
+        validation.validade_contact_phone(phone)
+
+        if any(filter(lambda c: phone == c.phone, book)):
+            raise DuplicatedPhoneNumberException(phone)
+
+        book.add(contact.Contact(name, phone))
+    except (
+        InvalidNameException,
+        InvalidPhoneNumberException,
+        DuplicatedPhoneNumberException,
+    ) as e:
+        print(e)
 
 
 def remove_contact(
