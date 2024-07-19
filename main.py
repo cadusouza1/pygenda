@@ -2,7 +2,8 @@ import contact
 import contact_book
 import menu_option
 import validation
-from exceptions import (DuplicatedPhoneNumberException, InvalidNameException,
+from exceptions import (ContactNotFoundException,
+                        DuplicatedPhoneNumberException, InvalidNameException,
                         InvalidPhoneNumberException)
 
 
@@ -31,28 +32,26 @@ def save_contact_book_to_txt_file(
 def search_contact_by_phone(
     book: contact_book.ContactBook,
 ) -> None:
-    name = input("Name: ")
-    contacts = book.search_by_phone(name)
-
-    if contacts is []:
-        print("No contacts found")
-        return
-
-    for c in contacts:
+    try:
+        phone = input("Phone: ")
+        validation.validade_contact_phone(phone)
+        _, c = book.search_by_phone(phone)
         print(c)
+    except (ContactNotFoundException, InvalidPhoneNumberException) as e:
+        print(e)
 
 
 def search_contact_by_name(
     book: contact_book.ContactBook,
 ) -> None:
-    name = input("Name: ")
-    _, c = book.search_by_name(name)
+    try:
+        name = input("Name: ")
+        validation.validade_contact_name(name)
 
-    if c is None:
-        print("Contact not found")
-        return
-
-    print(c)
+        for _, c in book.search_by_name(name):
+            print(c)
+    except (InvalidNameException, ContactNotFoundException) as e:
+        print(e)
 
 
 def add_contact(book: contact_book.ContactBook) -> None:
@@ -78,22 +77,24 @@ def add_contact(book: contact_book.ContactBook) -> None:
 def remove_contact(
     book: contact_book.ContactBook,
 ) -> contact.Contact | None:
-    name = input("Name of the contact to remove: ")
-    contacts = book.search_by_name(name)
+    try:
+        name = input("Name of the contact to remove: ")
+        validation.validade_contact_name(name)
 
-    if not contacts:
-        print("Contact not found")
-    else:
-        book.remove(contacts[0][0])  # Remove the first contact with the name
-        print(f"Contact removed")
+        contacts = book.search_by_name(name)
+        removed = book.remove(contacts[0][0])
+        print(f'Contact "{removed.name}" removed')
+    except (ContactNotFoundException, InvalidNameException) as e:
+        print(e)
 
 
 def edit_contact(book: contact_book.ContactBook) -> None:
-    name = input("Name of the contact to edit: ")
-    index, _ = book.search_by_name(name)
-
-    if index == -1:
-        print("Contact not found")
+    try:
+        name = input("Name of the contact to edit: ")
+        validation.validade_contact_name(name)
+        index, _ = book.search_by_name(name)
+    except (ContactNotFoundException, InvalidNameException) as e:
+        print(e)
         return
 
     new_name = input("New name (leave blank cancel): ")
@@ -103,7 +104,12 @@ def edit_contact(book: contact_book.ContactBook) -> None:
         book[index].name = new_name
 
     if new_phone:
-        book[index].phone = new_phone
+        try:
+            validation.validade_contact_phone(new_phone)
+            book[index].phone = new_phone
+        except InvalidPhoneNumberException as e:
+            print(e)
+            return
 
 
 def main():
@@ -113,7 +119,7 @@ def main():
         menu_option.MenuOption("Add", lambda book: add_contact(book)),
         menu_option.MenuOption("Remove", lambda book: remove_contact(book)),
         menu_option.MenuOption("Edit", lambda book: edit_contact(book)),
-        menu_option.MenuOption("List", lambda book: book.list_all_contacts()),
+        menu_option.MenuOption("List", lambda book: book.print_all_contacts()),
         menu_option.MenuOption(
             "Search by name", lambda book: search_contact_by_name(book)
         ),
@@ -139,7 +145,7 @@ def main():
         if option == 0:
             break
 
-        if option >= len(menu):
+        if option > len(menu):
             print("Invalid option")
             continue
 

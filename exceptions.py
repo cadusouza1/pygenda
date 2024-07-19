@@ -11,3 +11,8 @@ class InvalidPhoneNumberException(Exception):
 class DuplicatedPhoneNumberException(Exception):
     def __init__(self, phone) -> None:
         super().__init__(f"Duplicated phone number {phone}")
+
+
+class ContactNotFoundException(Exception):
+    def __init__(self, name: str) -> None:
+        super().__init__(f'Contact "{name}" not found')

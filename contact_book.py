@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Tuple
 
 import contact
+from exceptions import ContactNotFoundException
 
 
 @dataclass
@@ -17,24 +18,33 @@ class ContactBook:
         del self.contacts[index]
         return return_val
 
-    def search_by_phone(self, phone: str) -> Tuple[int, contact.Contact | None]:
+    def search_by_phone(self, phone: str) -> Tuple[int, contact.Contact]:
         for i, contact in enumerate(self.contacts):
             if contact.phone == phone:
                 return i, contact
 
-        return -1, None
+        raise ContactNotFoundException(phone)
 
     def search_by_name(
         self, name: str
     ) -> Tuple[Tuple[int, contact.Contact], ...]:
-        return tuple(
+        contacts = tuple(
             filter(
                 lambda val: val[1].name == name,
                 enumerate(self.contacts),
             ),
         )
 
-    def list_all_contacts(self) -> None:
+        if not contacts:
+            raise ContactNotFoundException(name)
+
+        return contacts
+
+    def print_all_contacts(self) -> None:
+        if not self.contacts:
+            print("Contact book is empty")
+            return
+
         for contact in self.contacts:
             print(contact)
 
