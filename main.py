@@ -8,18 +8,23 @@ from exceptions import (ContactNotFoundException,
 
 
 def load_contact_book_from_txt_file(txt: str) -> contact_book.ContactBook:
-    with open(txt, "r") as f:
-        return contact_book.ContactBook(
-            list(
-                map(
-                    lambda c: contact.Contact(c[0], c[1]),
+    try:
+        with open(txt, "r") as f:
+            return contact_book.ContactBook(
+                list(
                     map(
-                        lambda line: line.strip().replace("\n", "").split(","),
-                        f,
-                    ),
+                        lambda c: contact.Contact(c[0], c[1]),
+                        map(
+                            lambda line: line.strip()
+                            .replace("\n", "")
+                            .split(","),
+                            f,
+                        ),
+                    )
                 )
             )
-        )
+    except FileNotFoundError:
+        return contact_book.ContactBook([])
 
 
 def save_contact_book_to_txt_file(
